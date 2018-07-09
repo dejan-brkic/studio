@@ -30,10 +30,6 @@ public interface PublishRequestMapper {
 
     void insertItemForDeployment(PublishRequest copyToEnvironment);
 
-    void cancelWorkflow(Map params);
-
-    void cancelWorkflowBulk(Map params);
-
     List<PublishRequest> getItemsReadyForDeployment(Map params);
 
     void updateItemDeploymentState(PublishRequest item);

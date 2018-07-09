@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
@@ -54,6 +54,11 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
 
     public static final String NAME = "WriteContentToDmProcessor";
 
+    protected ContentService contentService;
+    protected WorkflowService workflowService;
+    protected ServicesConfig servicesConfig;
+    protected ObjectMetadataManager objectMetadataManager;
+    protected ContentRepository contentRepository;
 
     /**
      * default constructor
@@ -92,7 +97,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         boolean isPreview = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_IS_PREVIEW));
         boolean createFolders = ContentFormatUtils.getBooleanValue(content.getProperty(DmConstants.KEY_CREATE_FOLDERS));
         String unlockValue = content.getProperty(DmConstants.KEY_UNLOCK);
-        boolean unlock = (!StringUtils.isEmpty(unlockValue) && unlockValue.equalsIgnoreCase("false")) ? false : true;
+        boolean unlock = (!StringUtils.isEmpty(unlockValue) &&
+                unlockValue.equalsIgnoreCase("false")) ? false : true;
 
         String parentContentPath = path;
         if (parentContentPath.endsWith(FILE_SEPARATOR + fileName)) {
@@ -135,7 +141,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         ContentItemTO contentItem = contentService.getContentItem(site, path, 0);
                         InputStream existingContent = contentService.getContent(site, path);
                         updateFile(site, contentItem, path, input, user, isPreview, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.UPDATED.toString());
+                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE,
+                                ActivityService.ActivityType.UPDATED.toString());
                         if (unlock) {
                             // TODO: We need ability to lock/unlock content in repo
                             contentService.unLockContent(site, path);
@@ -143,8 +150,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                         }
                         return;
                     } else {
-                        ContentItemTO newFileItem = createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
-                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE, ActivityService.ActivityType.CREATED.toString());
+                        ContentItemTO newFileItem =
+                                createNewFile(site, parentItem, fileName, contentType, input, user, unlock, result);
+                        content.addProperty(DmConstants.KEY_ACTIVITY_TYPE,
+                                ActivityService.ActivityType.CREATED.toString());
                         return;
                     }
                 }
@@ -191,7 +200,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      *            current user
      * @throws ContentNotFoundException
      */
-    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType, InputStream input,
+    protected ContentItemTO createNewFile(String site, ContentItemTO parentItem, String fileName, String contentType,
+                                          InputStream input,
     		String user, boolean unlock, ResultTO result)
             throws ContentNotFoundException {
         ContentItemTO fileItem = null;
@@ -202,7 +212,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             try {
                 contentService.writeContent(site, parentItem.getUri() + FILE_SEPARATOR + fileName, input);
                 if (!objectMetadataManager.metadataExist(site, parentItem.getUri() + FILE_SEPARATOR + fileName)) {
-                    objectMetadataManager.insertNewObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName);
+                    objectMetadataManager.insertNewObjectMetadata(site,
+                            parentItem.getUri() + FILE_SEPARATOR + fileName);
                 }
                 Map<String, Object> properties = new HashMap<>();
                 properties.put(ItemMetadata.PROP_NAME, fileName);
@@ -215,8 +226,10 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
                 } else {
                     properties.put(ItemMetadata.PROP_LOCK_OWNER, user);
                 }
-                objectMetadataManager.setObjectMetadata(site, parentItem.getUri() + FILE_SEPARATOR + fileName, properties);
-                result.setCommitId(objectMetadataManager.getProperties(site, parentItem.getUri() + FILE_SEPARATOR + fileName).getCommitId());
+                objectMetadataManager.setObjectMetadata(site,
+                        parentItem.getUri() + FILE_SEPARATOR + fileName, properties);
+                result.setCommitId(objectMetadataManager.getProperties(site,
+                        parentItem.getUri() + FILE_SEPARATOR + fileName).getCommitId());
             } catch (Exception e) {
                 logger.error("Error writing new file: " + fileName, e);
             } finally {
@@ -247,7 +260,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
      * 			unlock the content upon update?
      * @throws ServiceException
      */
-    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user, boolean isPreview, boolean unlock, ResultTO result)
+    protected void updateFile(String site, ContentItemTO contentItem, String path, InputStream input, String user,
+                              boolean isPreview, boolean unlock, ResultTO result)
             throws ServiceException {
 
         boolean success = false;
@@ -271,17 +285,6 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             }
             objectMetadataManager.setObjectMetadata(site, path, properties);
             result.setCommitId(objectMetadataManager.getProperties(site, path).getCommitId());
-
-            // if there is anything pending and this is not a preview update, cancel workflow
-            if (!isPreview) {
-                if (cancelWorkflow(site, path)) {
-                    workflowService.removeFromWorkflow(site, path, true);
-                } else {
-                    if (updateWorkFlow(site, path)) {
-                        workflowService.updateWorkflowSandboxes(site, path);
-                    }
-                }
-            }
         }
 
         // unlock the content upon save if the flag is true
@@ -371,7 +374,8 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
             String folderPath = path.substring(0, index);
             String parentFileName = itemTO.getName();
             int dotIndex = parentFileName.indexOf(".");
-            String folderName = (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
+            String folderName =
+                    (dotIndex > 0) ? parentFileName.substring(0, parentFileName.indexOf(".")) : parentFileName;
             contentService.createFolder(site, folderPath, folderName);
             folderPath = folderPath + FILE_SEPARATOR + folderName;
             contentService.moveContent(site, path, folderPath + FILE_SEPARATOR + DmConstants.INDEX_FILE);
@@ -383,24 +387,43 @@ public class FormDmContentProcessor extends PathMatchProcessor implements DmCont
         }
     }
 
-    protected ContentService contentService;
-    protected WorkflowService workflowService;
-    protected ServicesConfig servicesConfig;
-    protected ObjectMetadataManager objectMetadataManager;
-    protected ContentRepository contentRepository;
+    public ContentService getContentService() {
+        return contentService;
+    }
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
 
-    public WorkflowService getWorkflowService() { return workflowService; }
-    public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
+    public WorkflowService getWorkflowService() {
+        return workflowService;
+    }
 
-    public ServicesConfig getServicesConfig() { return servicesConfig; }
-    public void setServicesConfig(ServicesConfig servicesConfig) { this.servicesConfig = servicesConfig; }
+    public void setWorkflowService(WorkflowService workflowService) {
+        this.workflowService = workflowService;
+    }
 
-    public ObjectMetadataManager getObjectMetadataManager() { return objectMetadataManager; }
-    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) { this.objectMetadataManager = objectMetadataManager; }
+    public ServicesConfig getServicesConfig() {
+        return servicesConfig;
+    }
 
-    public ContentRepository getContentRepository() { return contentRepository; }
-    public void setContentRepository(ContentRepository contentRepository) { this.contentRepository = contentRepository; }
+    public void setServicesConfig(ServicesConfig servicesConfig) {
+        this.servicesConfig = servicesConfig;
+    }
+
+    public ObjectMetadataManager getObjectMetadataManager() {
+        return objectMetadataManager;
+    }
+
+    public void setObjectMetadataManager(ObjectMetadataManager objectMetadataManager) {
+        this.objectMetadataManager = objectMetadataManager;
+    }
+
+    public ContentRepository getContentRepository() {
+        return contentRepository;
+    }
+
+    public void setContentRepository(ContentRepository contentRepository) {
+        this.contentRepository = contentRepository;
+    }
 }

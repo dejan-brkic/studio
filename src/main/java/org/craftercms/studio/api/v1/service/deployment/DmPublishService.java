@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.api.v1.service.deployment;
 
@@ -31,8 +31,6 @@ public interface DmPublishService {
     void unpublish(String site, List<String> paths, String approver);
 
     void unpublish(String site, List<String> paths, String approver, ZonedDateTime scheduleDate);
-
-    void cancelScheduledItem(String site, String path);
 
     boolean hasChannelsConfigure(String site, MultiChannelPublishingContext mcpContext);
 

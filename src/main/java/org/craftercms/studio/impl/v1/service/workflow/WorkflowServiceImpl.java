@@ -54,7 +54,6 @@ import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyRules;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
 import org.craftercms.studio.api.v1.service.deployment.DmPublishService;
 import org.craftercms.studio.api.v1.service.objectstate.ObjectStateService;
@@ -308,10 +307,7 @@ public class WorkflowServiceImpl implements WorkflowService {
 
     protected void doSubmit(final String site, final DmDependencyTO dependencyTO, final ZonedDateTime scheduledDate,
                             final boolean sendEmail, final boolean submitForDeletion, final String user,
-                            final boolean notifyAdmin, final String submissionComment, String environment)
-            throws ServiceException {
-        //first remove from workflow
-        removeFromWorkflow(site, dependencyTO.getUri(), true);
+                            final boolean notifyAdmin, final String submissionComment, String environment) {
         ContentItemTO item = contentService.getContentItem(site, dependencyTO.getUri());
 
         Map<String, Object> properties = new HashMap<>();
@@ -433,7 +429,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     @ValidateParams
     public void fillQueue(@ValidateStringParam(name = "site") String site, GoLiveQueue goLiveQueue,
-                          GoLiveQueue inProcessQueue) throws ServiceException {
+                          GoLiveQueue inProcessQueue) {
         List<ItemState> changeSet = objectStateService.getSubmittedItems(site);
         // TODO: implement list changed all
 
@@ -451,7 +447,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                             addToQueue(site, goLiveQueue, inProcessQueue, item, state);
                         }
                     } else {
-                        _cancelWorkflow(site, state.getPath());
                         objectStateService.deleteObjectStateForPath(site, state.getPath());
                         objectMetadataManager.deleteObjectMetadata(site, state.getPath());
                     }
@@ -464,7 +459,7 @@ public class WorkflowServiceImpl implements WorkflowService {
     }
 
     protected void addToQueue(String site, GoLiveQueue queue, GoLiveQueue inProcessQueue, ContentItemTO item,
-                              ItemState itemState) throws ServiceException {
+                              ItemState itemState) {
         if (item != null) {
             State state = State.valueOf(itemState.getState());
             //add only submitted items to go live Q.
@@ -589,58 +584,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             return true;
         }
         return false;
-    }
-
-    @Override
-    @ValidateParams
-    public boolean removeFromWorkflow(@ValidateStringParam(name = "site") String site,
-                                      @ValidateSecurePathParam(name = "path") String path, boolean cancelWorkflow)
-            throws ServiceException {
-        Set<String> processedPaths = new HashSet<>();
-        return removeFromWorkflow(site, path, processedPaths, cancelWorkflow);
-    }
-
-    protected boolean removeFromWorkflow(String site,  String path, Set<String> processedPaths, boolean cancelWorkflow)
-            throws ServiceException {
-        // remove submitted aspects from all dependent items
-        if (!processedPaths.contains(path)) {
-            processedPaths.add(path);
-            // cancel workflow if anything is pending
-            long startTime = System.currentTimeMillis();
-            if (cancelWorkflow) {
-                _cancelWorkflow(site, path);
-            }
-            long duration = System.currentTimeMillis() - startTime;
-            logger.debug("_cancelWorkflow Duration 111: {0}", duration);
-        }
-        return false;
-    }
-
-    protected void _cancelWorkflow(String site, String path) throws ServiceException {
-        List<String> allItemsToCancel = getWorkflowAffectedPathsInternal(site, path);
-        List<String> paths = new ArrayList<String>();
-        for (String affectedItem : allItemsToCancel) {
-            try {
-                deploymentService.cancelWorkflow(site, affectedItem);
-                ItemMetadata itemMetadata = objectMetadataManager.getProperties(site, affectedItem);
-                if (itemMetadata != null) {
-                    itemMetadata.setSubmittedBy(StringUtils.EMPTY);
-                    itemMetadata.setSendEmail(0);
-                    itemMetadata.setSubmittedForDeletion(0);
-                    itemMetadata.setSubmissionComment(StringUtils.EMPTY);
-                    itemMetadata.setLaunchDate(null);
-                    itemMetadata.setSubmittedToEnvironment(StringUtils.EMPTY);
-                    objectMetadataManager.updateObjectMetadata(itemMetadata);
-                }
-                paths.add(affectedItem);
-            } catch (DeploymentException e) {
-                logger.error("Error occurred while trying to cancel workflow for path [" + affectedItem
-                        + "], site " + site, e);
-            }
-        }
-        objectStateService.transitionBulk(site, paths,
-                org.craftercms.studio.api.v1.service.objectstate.TransitionEvent.REJECT,
-                State.NEW_UNPUBLISHED_UNLOCKED);
     }
 
     protected List<String> getWorkflowAffectedPathsInternal(String site, String path) throws ServiceException {
@@ -1902,8 +1845,6 @@ public class WorkflowServiceImpl implements WorkflowService {
     @Override
     public List<String> preDelete(Set<String> urisToDelete, GoLiveContext context, Set<String> rescheduledUris)
             throws ServiceException {
-        cleanUrisFromWorkflow(urisToDelete, context.getSite());
-        cleanUrisFromWorkflow(rescheduledUris, context.getSite());
         List<String> deletedItems =
                 deleteInTransaction(context.getSite(), new ArrayList<String>(urisToDelete), true,
                         context.getApprover());
@@ -1918,12 +1859,8 @@ public class WorkflowServiceImpl implements WorkflowService {
         //return contentService.deleteContents(site, itemsToDelete, generateActivity, approver);
     }
 
-    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws ServiceException {
-        if (uris != null && !uris.isEmpty()) {
-            for (String uri : uris) {
-                cleanWorkflow(uri, site, Collections.<DmDependencyTO>emptySet());
-            }
-        }
+    protected void cleanUrisFromWorkflow(final Set<String> uris, final String site) throws Exception {
+        throw new Exception("Not supported");
     }
 
     /**
@@ -1948,15 +1885,6 @@ public class WorkflowServiceImpl implements WorkflowService {
             logger.error("error making go live", e);
             throw e;
         }
-    }
-
-    @Override
-    @ValidateParams
-    public boolean cleanWorkflow(@ValidateSecurePathParam(name = "url") final String url,
-                                 @ValidateStringParam(name = "site") final String site,
-                                 final Set<DmDependencyTO> dependents) throws ServiceException {
-        _cancelWorkflow(site, url);
-        return true;
     }
 
     /**
@@ -2021,10 +1949,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                     }
                     if (!stringList.isEmpty()) {
                         // get the workflow initiator mapping
-                        Map<String, String> submittedBy = new HashMap<String, String>();
-                        for (String uri : stringList) {
-                            dmPublishService.cancelScheduledItem(site, uri);
-                        }
                         workflowProcessor.addToWorkflow(site, stringList, launchDate, label, operation, approver,
                                 mcpContext);
                     }
@@ -2199,7 +2123,6 @@ public class WorkflowServiceImpl implements WorkflowService {
                 objectStateService.setSystemProcessingBulk(site, paths, true);
                 Set<String> cancelPaths = new HashSet<String>();
                 cancelPaths.addAll(paths);
-                deploymentService.cancelWorkflowBulk(site, cancelPaths);
                 reject(site, submittedItems, reason, approver);
                 generateWorkflowActivity(site, paths, approver, ActivityService.ActivityType.REJECT);
                 objectStateService.setSystemProcessingBulk(site, paths, false);
@@ -2211,7 +2134,7 @@ public class WorkflowServiceImpl implements WorkflowService {
                 result.setSuccess(false);
                 result.setMessage("No items provided for preparation.");
             }
-        } catch (JSONException | DeploymentException e) {
+        } catch (JSONException e) {
             result.setSuccess(false);
             result.setMessage(e.getMessage());
         }

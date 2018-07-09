@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.service.clipboard;
 
@@ -29,9 +29,7 @@ import org.craftercms.studio.api.v1.service.AbstractRegistrableService;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.clipboard.ClipboardService;
 import org.craftercms.studio.api.v1.service.workflow.WorkflowService;
-import org.craftercms.studio.api.v1.to.DmDependencyTO;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -45,6 +43,9 @@ public class ClipboardServiceImpl extends AbstractRegistrableService
 implements ClipboardService {
 
     protected static final Logger logger = LoggerFactory.getLogger(ClipboardServiceImpl.class);
+
+    protected ContentService contentService;
+    protected WorkflowService workflowService;
 
     @Override
     public void register() {
@@ -61,16 +62,16 @@ implements ClipboardService {
 
     @Override
     @ValidateParams
-    public boolean cut(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, HttpSession session)
-    throws ServiceException {
+    public boolean cut(@ValidateStringParam(name = "site") String site,
+                       @ValidateSecurePathParam(name = "path") String path, HttpSession session) {
         ClipboardItem clipItem = new ClipboardItem(path, true);
         return clip(site, clipItem, true, session);
     }
 
     @Override
     @ValidateParams
-    public boolean copy(@ValidateStringParam(name = "site") String site, @ValidateSecurePathParam(name = "path") String path, HttpSession session)
-    throws ServiceException {
+    public boolean copy(@ValidateStringParam(name = "site") String site,
+                        @ValidateSecurePathParam(name = "path") String path, HttpSession session) {
 
         ClipboardItem clipItem = new ClipboardItem(path, false);
 
@@ -79,14 +80,15 @@ implements ClipboardService {
 
     @Override
     @ValidateParams
-    public boolean copy(@ValidateStringParam(name = "site") String site, ClipboardItem clipItem, HttpSession session)
-    throws ServiceException {
+    public boolean copy(@ValidateStringParam(name = "site") String site, ClipboardItem clipItem, HttpSession session) {
         return clip(site, clipItem, false, session);
     }
 
     @Override
     @ValidateParams
-    public Set<String> paste(@ValidateStringParam(name = "site") String site, @ValidateStringParam(name = "destinationPath") String destinationPath, HttpSession session)
+    public Set<String> paste(@ValidateStringParam(name = "site") String site,
+                             @ValidateStringParam(name = "destinationPath") String destinationPath,
+                             HttpSession session)
     throws ServiceException {
         Set<String> pastedItems = new HashSet<String>();
 
@@ -109,8 +111,8 @@ implements ClipboardService {
      * @param clipOps ops to be pasted
      * @param pastedItems collection of (new) pasted paths
      */
-    protected void pasteItems(String site, String destinationPath, Set<ClipboardItem> clipOps, Set<String> pastedItems) 
-    throws ServiceException {
+    protected void pasteItems(String site, String destinationPath, Set<ClipboardItem> clipOps,
+                              Set<String> pastedItems) {
         for(ClipboardItem op : clipOps) {
             try {
                 String newPath = null;
@@ -119,7 +121,6 @@ implements ClipboardService {
                 if (cut) {
                     // RDTMP_COPYPASTE
                     // CopyContent inteface is able to send status and new path yet
-                    workflowService.cleanWorkflow(op.path, site, Collections.<DmDependencyTO>emptySet());
                     newPath = contentService.moveContent(site, op.path, destinationPath);
                 }
                 else {
@@ -177,12 +178,21 @@ implements ClipboardService {
     }
 
 
-    protected ContentService contentService;
-    protected WorkflowService workflowService;
 
-    public ContentService getContentService() { return contentService; }
-    public void setContentService(ContentService contentService) { this.contentService = contentService; }
 
-    public WorkflowService getWorkflowService() { return workflowService; }
-    public void setWorkflowService(WorkflowService workflowService) { this.workflowService = workflowService; }
+    public ContentService getContentService() {
+        return contentService;
+    }
+
+    public void setContentService(ContentService contentService) {
+        this.contentService = contentService;
+    }
+
+    public WorkflowService getWorkflowService() {
+        return workflowService;
+    }
+
+    public void setWorkflowService(WorkflowService workflowService) {
+        this.workflowService = workflowService;
+    }
 }

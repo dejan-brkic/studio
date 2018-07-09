@@ -28,7 +28,6 @@ import org.craftercms.studio.api.v1.to.*;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 	// document
@@ -36,16 +35,14 @@ import java.util.Set;
 public interface DeploymentService {
 
     // document
-    void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver, String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
+    void deploy(String site, String environment, List<String> paths, ZonedDateTime scheduledDate, String approver,
+                String submissionComment, final boolean scheduleDateNow) throws DeploymentException;
 
     // document
-    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate) throws DeploymentException;
+    void delete(String site, List<String> paths, String approver, ZonedDateTime scheduledDate)
+            throws DeploymentException;
 
     List<PublishRequest> getScheduledItems(String site);
-
-    void cancelWorkflow(String site, String path) throws DeploymentException;
-
-    void cancelWorkflowBulk(String site, Set<String> paths) throws DeploymentException;
 
     void deleteDeploymentDataForSite(String site);
 
@@ -67,7 +64,8 @@ public interface DeploymentService {
             String site, int days, int number, String sort, boolean ascending,
             String filterType);
 
-    List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort, boolean subAscending, String filterType) throws ServiceException;
+    List<ContentItemTO> getScheduledItems(String site, String sort, boolean ascending, String subSort,
+                                          boolean subAscending, String filterType) throws ServiceException;
 
     Map<String, List<PublishingChannelTO>> getAvailablePublishingChannelGroups(String site, String path);
 

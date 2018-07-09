@@ -306,7 +306,6 @@ public class PublishingManagerImpl implements PublishingManager {
                 String parentPath = helpPath.substring(0, idx) + FILE_SEPARATOR + getIndexFile();
                 if (objectStateService.isNew(site, parentPath) || objectMetadataManager.isRenamed(site, parentPath)) {
                     if (!missingDependenciesPaths.contains(parentPath) && !pathsToDeploy.contains(parentPath)) {
-                        deploymentService.cancelWorkflow(site, parentPath);
                         missingDependenciesPaths.add(parentPath);
                         PublishRequest parentItem = createMissingItem(site, parentPath, item);
                         DeploymentItemTO parentDeploymentItem = processItem(parentItem);
@@ -325,7 +324,6 @@ public class PublishingManagerImpl implements PublishingManager {
                             objectMetadataManager.isRenamed(site, dependentPath)) {
                         if (!missingDependenciesPaths.contains(dependentPath) &&
                                 !pathsToDeploy.contains(dependentPath)) {
-                            deploymentService.cancelWorkflow(site, dependentPath);
                             missingDependenciesPaths.add(dependentPath);
                             PublishRequest dependentItem = createMissingItem(site, dependentPath, item);
                             DeploymentItemTO dependentDeploymentItem = processItem(dependentItem);

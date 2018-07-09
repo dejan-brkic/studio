@@ -47,7 +47,6 @@ import org.craftercms.studio.api.v1.service.configuration.ServicesConfig;
 import org.craftercms.studio.api.v1.service.content.ContentService;
 import org.craftercms.studio.api.v1.service.content.ObjectMetadataManager;
 import org.craftercms.studio.api.v1.service.dependency.DependencyService;
-import org.craftercms.studio.api.v1.service.deployment.CopyToEnvironmentItem;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentException;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentHistoryProvider;
 import org.craftercms.studio.api.v1.service.deployment.DeploymentService;
@@ -437,31 +436,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
         params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
         return publishRequestMapper.getScheduledItems(params);
-    }
-
-    @Override
-    @ValidateParams
-    public void cancelWorkflow(@ValidateStringParam(name = "site") String site,
-                               @ValidateSecurePathParam(name = "path") String path) throws DeploymentException {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("path", path);
-        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
-        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        publishRequestMapper.cancelWorkflow(params);
-    }
-
-    @Override
-    @ValidateParams
-    public void cancelWorkflowBulk(@ValidateStringParam(name = "site") String site, Set<String> paths) {
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site", site);
-        params.put("paths", paths);
-        params.put("state", CopyToEnvironmentItem.State.READY_FOR_LIVE);
-        params.put("canceledState", CopyToEnvironmentItem.State.CANCELED);
-        params.put("now", ZonedDateTime.now(ZoneOffset.UTC));
-        publishRequestMapper.cancelWorkflowBulk(params);
     }
 
     @Override
@@ -1005,9 +979,6 @@ public class DeploymentServiceImpl implements DeploymentService {
         Set<String> allPaths = new HashSet<String>();
         allPaths.addAll(paths);
         allPaths.addAll(dependencies);
-
-        // remove all items from existing workflows
-        cancelWorkflowBulk(site, allPaths);
 
         // send to deployment queue
         List<String> asList = new ArrayList<String>();

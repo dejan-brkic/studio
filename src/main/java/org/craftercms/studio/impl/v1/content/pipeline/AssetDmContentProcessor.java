@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package org.craftercms.studio.impl.v1.content.pipeline;
 
@@ -51,6 +51,9 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(AssetDmContentProcessor.class);
 
     public static final String NAME = "WriteAssetToDmProcessor";
+
+    protected ObjectStateService objectStateService;
+    protected StudioConfiguration studioConfiguration;
 
     public String getAssetsSystemPath() {
         return studioConfiguration.getProperty(CONTENT_PROCESSOR_ASSETS_SYSTEM_PATH);
@@ -228,17 +231,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             }
             objectMetadataManager.setObjectMetadata(site, relativePath, properties);
             result.setCommitId(objectMetadataManager.getProperties(site, relativePath).getCommitId());
-
-            // if there is anything pending and this is not a preview update, cancel workflow
-            if (!isPreview) {
-                if (cancelWorkflow(site, relativePath)) {
-                    workflowService.removeFromWorkflow(site, relativePath, true);
-                } else {
-                    if (updateWorkFlow(site, relativePath)) {
-                        workflowService.updateWorkflowSandboxes(site, relativePath);
-                    }
-                }
-            }
         }
         if (unlock) {
             contentService.unLockContent(site, relativePath);
@@ -247,9 +239,6 @@ public class AssetDmContentProcessor extends FormDmContentProcessor {
             contentService.lockContent(site, relativePath);
         }
     }
-
-    protected ObjectStateService objectStateService;
-    protected StudioConfiguration studioConfiguration;
 
     public ObjectStateService getObjectStateService() {
         return objectStateService;

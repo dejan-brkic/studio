@@ -1,20 +1,20 @@
-/*******************************************************************************
- * Crafter Studio Web-content authoring solution
- *     Copyright (C) 2007-2016 Crafter Software Corporation.
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
- ******************************************************************************/
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 package org.craftercms.studio.api.v1.service.workflow;
 
 import java.time.ZonedDateTime;
@@ -41,7 +41,8 @@ public interface WorkflowService {
 	 * @param sendApprovedNotice true triggers email to submitter on approval
 	 * @param submitter the one submitted the job.
 	 */
-	void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice, String submitter);
+	void submitToGoLive(String site, List<String> paths, ZonedDateTime scheduledDate, boolean sendApprovedNotice,
+                        String submitter);
 
 	ResultTO submitToGoLive(String site, String username, String request) throws ServiceException;
 
@@ -49,18 +50,9 @@ public interface WorkflowService {
 
 	Map<String, Object> getGoLiveItems(String site, String sort, boolean ascending) throws ServiceException;
 
-	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly) throws ServiceException;
+	Map<String, Object> getInProgressItems(String site, String sort, boolean ascending, boolean inProgressOnly)
+            throws ServiceException;
 
-	/**
-	 * cancel the workflow pending on the given item.
-	 *
-	 * @param site
-	 * @param path
-	 * @param cancelWorkflow
-	 * 			cancel the pending workflow instance this content belongs to?
-	 * @throws ServiceException
-	 */
-	boolean removeFromWorkflow(String site, String path, boolean cancelWorkflow) throws ServiceException;
 
 	List<ContentItemTO> getWorkflowAffectedPaths(String site, String path) throws ServiceException;
 
@@ -78,7 +70,6 @@ public interface WorkflowService {
      * @param site
      * @param request
      * @return call result
-     * @throws ServiceException
      */
     ResultTO goDelete(String site, String request, String user);
 
@@ -87,7 +78,8 @@ public interface WorkflowService {
     void preScheduleDelete(Set<String> uris, ZonedDateTime _date,
                            GoLiveContext context, Set rescheduledUris) throws ServiceException;
 
-    List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris) throws ServiceException;
+    List<String> preDelete(Set<String> urisToDelete, GoLiveContext context,Set<String> rescheduledUris)
+            throws ServiceException;
 
     boolean isRescheduleRequest(DmDependencyTO dependencyTO, String site);
 
@@ -106,6 +98,4 @@ public interface WorkflowService {
     ResultTO reject(final String site, final String user, final String request) throws ServiceException;
 
     void fillQueue(String site, GoLiveQueue goLiveQueue, GoLiveQueue inProcessQueue) throws ServiceException;
-
-    boolean cleanWorkflow(final String url, final String site, final Set<DmDependencyTO> dependents) throws ServiceException;
 }
