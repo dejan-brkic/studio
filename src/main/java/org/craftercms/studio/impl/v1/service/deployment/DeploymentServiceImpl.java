@@ -57,6 +57,7 @@ import org.craftercms.studio.api.v1.service.security.SecurityService;
 import org.craftercms.studio.api.v1.service.site.SiteService;
 import org.craftercms.studio.api.v1.to.ContentItemTO;
 import org.craftercms.studio.api.v1.to.DmDeploymentTaskTO;
+import org.craftercms.studio.api.v1.to.PublishRequestPackageTO;
 import org.craftercms.studio.api.v1.to.PublishStatus;
 import org.craftercms.studio.api.v1.to.PublishingChannelTO;
 import org.craftercms.studio.api.v1.to.PublishingTargetTO;
@@ -998,6 +999,37 @@ public class DeploymentServiceImpl implements DeploymentService {
             throw new SiteNotFoundException(siteId);
         }
         contentRepository.resetStagingRepository(siteId);
+    }
+
+    @Override
+    public Map<String, Object> listPublishRequests(String siteId) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("site_id", siteId);
+        params.put("state", PublishRequest.State.READY_FOR_LIVE);
+        List<PublishRequest> publishQueue = publishRequestMapper.listPublishRequestsForSiteAndState(params);
+        Map<String, Object> toRet = new HashMap<String, Object>();
+        toRet.put("site_id", siteId);
+        toRet.put("publish_requests", parsePublishRequestQueue(publishQueue));
+        return toRet;
+    }
+
+    private List<PublishRequestPackageTO> parsePublishRequestQueue(List<PublishRequest> publishRequests) {
+        Map<String, PublishRequestPackageTO> temp = new HashMap<String, PublishRequestPackageTO>();
+        List<PublishRequestPackageTO> toRet = new ArrayList<PublishRequestPackageTO>();
+        for (PublishRequest pr : publishRequests) {
+            PublishRequestPackageTO prp = temp.get(pr.getPackageId());
+            if (prp == null) {
+                prp = new PublishRequestPackageTO();
+                prp.setPackage_id(pr.getPackageId());
+                prp.setEnvironment(pr.getEnvironment());
+                prp.setScheduled_date(pr.getScheduledDate());
+                prp.setPaths(new ArrayList<String>());
+            }
+            prp.getPaths().add(pr.getPath());
+            temp.put(pr.getPackageId(), prp);
+        }
+        toRet.addAll(temp.values());
+        return toRet;
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

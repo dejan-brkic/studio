@@ -1,6 +1,5 @@
 /*
- * Crafter Studio Web-content authoring solution
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
 
@@ -36,7 +36,7 @@ if (invalidParams) {
 } else {
     def context = DeploymentServices.createContext(applicationContext, request)
     try {
-        def status = DeploymentServices.getStatus(context, siteId)
+        def status = DeploymentServices.listPublishRequests(context, siteId)
         if (status != null) {
             response.setStatus(200)
             result = status

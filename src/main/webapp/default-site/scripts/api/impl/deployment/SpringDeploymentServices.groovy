@@ -75,4 +75,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.resetStagingEnvironment(siteId)
     }
+
+    def listPublishRequests(siteId) {
+        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
+        return springBackedService.listPublishRequests(siteId)
+    }
 }

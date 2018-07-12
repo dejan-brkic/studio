@@ -117,4 +117,11 @@
         AND state = #{state}
         ORDER BY scheduleddate ASC
     </select>
+
+    <select id="listPublishRequestsForSiteAndState" resultMap="PublishRequestMap">
+        SELECT *
+        FROM publish_request
+        WHERE site = #{site_id}
+        AND state = #{state}
+    </select>
 </mapper>

@@ -123,4 +123,6 @@ public interface DeploymentService {
      * @param siteId site id to use for resetting
      */
     void resetStagingEnvironment(String siteId) throws ServiceException;
+
+    Map<String, Object> listPublishRequests(String siteId);
 }

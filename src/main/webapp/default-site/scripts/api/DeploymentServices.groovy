@@ -72,4 +72,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.resetStagingEnvironment(siteId)
     }
+
+    static listPublishRequests(context, siteId) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.listPublishRequests(siteId)
+    }
 }
