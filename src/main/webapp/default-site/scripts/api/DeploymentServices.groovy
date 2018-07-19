@@ -77,4 +77,9 @@ class DeploymentServices {
         def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
         return deploymentServicesImpl.listPublishRequests(siteId)
     }
+
+    static cancelPublishRequests(context, siteId, packageIds) {
+        def deploymentServicesImpl = ServiceFactory.getDeploymentServices(context)
+        return deploymentServicesImpl.cancelPublishRequests(siteId, packageIds)
+    }
 }

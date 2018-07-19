@@ -62,7 +62,7 @@ try {
     } else {
         def context = DeploymentServices.createContext(applicationContext, request)
         try {
-            def status = DeploymentServices.cancelPublishRequests(context, siteId)
+            def status = DeploymentServices.cancelPublishRequests(context, siteId, packageIds)
             if (status != null) {
                 response.setStatus(200)
                 result = status

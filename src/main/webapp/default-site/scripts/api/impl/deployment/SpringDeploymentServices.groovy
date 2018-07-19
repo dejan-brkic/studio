@@ -80,4 +80,9 @@ class SpringDeploymentServices {
         def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
         return springBackedService.listPublishRequests(siteId)
     }
+
+    def cancelPublishRequests(siteId, packageIds) {
+        def springBackedService = this.context.applicationContext.get(DEPLOYMENT_SERVICES_BEAN)
+        return springBackedService.cancelPublishRequests(siteId, packageIds)
+    }
 }
