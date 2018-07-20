@@ -1004,7 +1004,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Override
     public Map<String, Object> listPublishRequests(String siteId) {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("site_id", siteId);
+        params.put("siteId", siteId);
         params.put("state", PublishRequest.State.READY_FOR_LIVE);
         List<PublishRequest> publishQueue = publishRequestMapper.listPublishRequestsForSiteAndState(params);
         Map<String, Object> toRet = new HashMap<String, Object>();
@@ -1030,6 +1030,20 @@ public class DeploymentServiceImpl implements DeploymentService {
         }
         toRet.addAll(temp.values());
         return toRet;
+    }
+
+    @Override
+    public boolean cancelPublishRequests(String siteId, List<String> packageIds) {
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("siteId", siteId);
+        params.put("packageIds", packageIds);
+        params.put("state", PublishRequest.State.CANCELLED);
+        int result = publishRequestMapper.cancelPublishRequestsForSite(params);
+        if (result > 0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void setServicesConfig(ServicesConfig servicesConfig) {

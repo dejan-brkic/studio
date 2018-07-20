@@ -45,4 +45,6 @@ public interface PublishRequestMapper {
     int checkItemQueued(Map params);
 
     List<PublishRequest> listPublishRequestsForSiteAndState(Map params);
+
+    int cancelPublishRequestsForSite(Map params);
 }

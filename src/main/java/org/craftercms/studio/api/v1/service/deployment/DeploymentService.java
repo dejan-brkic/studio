@@ -124,5 +124,19 @@ public interface DeploymentService {
      */
     void resetStagingEnvironment(String siteId) throws ServiceException;
 
+    /**
+     * List pending (queued) publish requests for given site
+     *
+     * @param siteId site identifier
+     * @return list of publish requests
+     */
     Map<String, Object> listPublishRequests(String siteId);
+
+    /**
+     * Cancel given publish request packages for site
+     * @param siteId site identifier
+     * @param packageIds list of package identifiers
+     * @return true if successful, otherwise false
+     */
+    boolean cancelPublishRequests(String siteId, List<String> packageIds);
 }

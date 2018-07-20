@@ -121,7 +121,18 @@
     <select id="listPublishRequestsForSiteAndState" resultMap="PublishRequestMap">
         SELECT *
         FROM publish_request
-        WHERE site = #{site_id}
+        WHERE site = #{siteId}
         AND state = #{state}
     </select>
+
+    <update id="cancelPublishRequestsForSite" parameterType="java.util.Map">
+        UPDATE publish_request
+        SET state = #{state}
+        WHERE site = #{siteId}
+        AND package_id IN
+        <foreach item="packageId" index="index" collection="packageIds"
+                 open="(" separator="," close=")">
+            #{packageId}
+        </foreach>
+    </update>
 </mapper>
