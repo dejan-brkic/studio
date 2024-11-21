@@ -134,7 +134,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>r09</version>
+            <version>30.0-android</version>
         </dependency>
         <dependency>
             <groupId>com.google.gdata</groupId>
